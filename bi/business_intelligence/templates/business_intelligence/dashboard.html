@@ -1,172 +1,150 @@
-Tentu, permintaan Anda sangat tepat. Agar nilai "Fraud Cases" dapat menyesuaikan dengan filter, kita perlu memastikan bahwa data fraud (`fraudData`) juga ikut difilter berdasarkan `Transaction_Type` yang dipilih, sama seperti data lainnya.
-
-Saat ini, di dalam fungsi `updateDashboard`, data fraud tidak ikut difilter. Mari kita perbaiki.
-
-### Perubahan yang Diperlukan
-
-Perubahan hanya perlu dilakukan pada fungsi `updateDashboard`. Kita akan memfilter `originalFraud` sama seperti kita memfilter `filteredReport`, `filteredStatus`, dan `filteredPeriod`.
-
-Ini adalah fungsi `updateDashboard` yang sudah diperbaiki. Perhatikan baris yang ditambahkan untuk memfilter `filteredFraud`.
-
-```javascript
-          function updateDashboard() {
-              const selectedType = typeFilter.value;
-              const selectedMonth = monthFilter.value;
-              const selectedYear = yearFilter.value;
-              
-              let filteredReport = originalReport;
-              let filteredStatus = originalStatus;
-              let filteredPeriod = originalPeriod;
-              // Ubah 'const' menjadi 'let' dan filter data fraud
-              let filteredFraud = originalFraud; 
-
-              if (selectedType !== 'All') {
-                  filteredReport = filteredReport.filter(r => r.Transaction_Type === selectedType);
-                  filteredStatus = filteredStatus.filter(s => s.Transaction_Type === selectedType);
-                  filteredPeriod = filteredPeriod.filter(p => p.Transaction_Type === selectedType);
-                  // TAMBAHKAN INI: Filter data fraud berdasarkan tipe
-                  filteredFraud = filteredFraud.filter(f => f.Transaction_Type === selectedType);
-              }
-
-              if (selectedMonth !== 'All') {
-                  filteredReport = filteredReport.filter(r => r.Month == selectedMonth);
-                  filteredStatus = filteredStatus.filter(s => s.Month == selectedMonth);
-                  filteredPeriod = filteredPeriod.filter(p => p.Month == selectedMonth);
-                   // TAMBAHKAN INI: Filter data fraud berdasarkan bulan
-                  filteredFraud = filteredFraud.filter(f => f.Month == selectedMonth);
-              }
-
-              if (selectedYear !== 'All') {
-                  filteredReport = filteredReport.filter(r => r.Year == selectedYear);
-                  filteredStatus = filteredStatus.filter(s => s.Year == selectedYear);
-                  filteredPeriod = filteredPeriod.filter(p => p.Year == selectedYear);
-                   // TAMBAHKAN INI: Filter data fraud berdasarkan tahun
-                  filteredFraud = filteredFraud.filter(f => f.Year == selectedYear);
-              }
-
-              calculateKPIs(filteredReport, filteredStatus, filteredFraud, filteredPeriod);
-              createAmountChart(filteredReport);
-              createStatusChart(filteredStatus);
-              // Grafik Fraud sekarang juga akan menggunakan data yang sudah terfilter
-              createFraudChart(filteredFraud); 
-              createPeriodChart(filteredPeriod);
-          }
-```
-
----
-
-### Kode Lengkap yang Telah Diperbarui
-
-Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah diperbaiki. Anda bisa langsung menggunakan kode ini.
-
-```html
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Dashboard</title>
+    <title>Enhanced Financial Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-        // Apply dark mode theme for Tailwind
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
         }
     </script>
     <style>
-        /* Custom styles */
         body {
             font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        /* Custom scrollbar for dark theme */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
         .filter-select {
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
             background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="%239ca3af"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>');
             background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1.25em;
+            background-position: right 0.75rem center;
+            background-size: 1em;
             padding-right: 2.5rem;
+        }
+        .chart-gradient-blue {
+            background-image: linear-gradient(to top, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.5));
+        }
+        .chart-gradient-orange {
+            background-image: linear-gradient(to top, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.5));
         }
     </style>
 </head>
-<body class="antialiased bg-gray-900 text-gray-300">
+<body class="bg-slate-900 text-slate-400">
 
     <div class="flex h-screen">
-        <main class="flex-1 flex flex-col overflow-hidden">
-            <header class="p-6 bg-gray-800 border-b border-gray-700">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+        <aside class="w-64 flex-shrink-0 bg-slate-800/50 border-r border-slate-700/50 flex flex-col">
+            <div class="h-16 flex items-center px-6 border-b border-slate-700/50">
+                <i data-lucide="layout-dashboard" class="text-indigo-400"></i>
+                <h1 class="ml-3 text-lg font-bold text-white">MyFinance</h1>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Filters</h2>
+                <div class="space-y-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-white">Financial Dashboard</h1>
-                        <p class="text-sm text-gray-400">Analytics overview for transaction monitoring.</p>
+                        <label for="typeFilter" class="text-sm font-medium text-slate-300">Transaction Type</label>
+                        <select id="typeFilter" class="filter-select mt-2 block w-full pl-4 pr-10 py-2.5 text-base bg-slate-700/50 border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm transition-all duration-300"></select>
                     </div>
-                    <div class="flex items-center space-x-4 mt-4 md:mt-0">
-                        <div>
-                            <label for="typeFilter" class="text-sm font-medium text-gray-400">Type</label>
-                            <select id="typeFilter" class="filter-select mt-1 block w-full pl-3 py-2 text-base bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
-                            </select>
-                        </div>
-                         <div>
-                            <label for="monthFilter" class="text-sm font-medium text-gray-400">Month</label>
-                            <select id="monthFilter" class="filter-select mt-1 block w-full pl-3 py-2 text-base bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
-                            </select>
-                        </div>
-                        <div>
-                            <label for="yearFilter" class="text-sm font-medium text-gray-400">Year</label>
-                            <select id="yearFilter" class="filter-select mt-1 block w-full pl-3 py-2 text-base bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
-                            </select>
-                        </div>
+                    <div>
+                        <label for="monthFilter" class="text-sm font-medium text-slate-300">Month</label>
+                        <select id="monthFilter" class="filter-select mt-2 block w-full pl-4 pr-10 py-2.5 text-base bg-slate-700/50 border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm transition-all duration-300"></select>
                     </div>
+                    <div>
+                        <label for="yearFilter" class="text-sm font-medium text-slate-300">Year</label>
+                        <select id="yearFilter" class="filter-select mt-2 block w-full pl-4 pr-10 py-2.5 text-base bg-slate-700/50 border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm transition-all duration-300"></select>
+                    </div>
+                </div>
+            </div>
+            </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="p-6 bg-slate-900/50 backdrop-blur-sm">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white">Financial Overview</h1>
+                    <p class="text-sm text-slate-400 mt-1">Real-time analytics for transaction monitoring.</p>
                 </div>
             </header>
 
             <div class="flex-1 p-6 overflow-y-auto">
-                
-                <div id="kpi-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-blue-900/50 p-3 rounded-full"><svg class="h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v-2m0-4h.01M12 7a2 2 0 100-4 2 2 0 000 4zm0 10a2 2 0 100 4 2 2 0 000-4z"/></svg></div>
-                        <div><p class="text-sm text-gray-400">Total Amount</p><p id="kpiTotalAmount" class="text-2xl font-bold text-white">$0</p></div>
+                <div id="kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50 transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-slate-400">Total Amount</p>
+                                <p id="kpiTotalAmount" class="text-3xl font-bold text-white mt-1">$0</p>
+                            </div>
+                            <div class="bg-blue-500/10 p-3 rounded-full"><i data-lucide="dollar-sign" class="h-6 w-6 text-blue-400"></i></div>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-green-900/50 p-3 rounded-full"><svg class="h-6 w-6 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></div>
-                        <div><p class="text-sm text-gray-400">Total Transactions</p><p id="kpiTotalTransactions" class="text-2xl font-bold text-white">0</p></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50 transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-slate-400">Total Transactions</p>
+                                <p id="kpiTotalTransactions" class="text-3xl font-bold text-white mt-1">0</p>
+                            </div>
+                            <div class="bg-green-500/10 p-3 rounded-full"><i data-lucide="list" class="h-6 w-6 text-green-400"></i></div>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-red-900/50 p-3 rounded-full"><svg class="h-6 w-6 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
-                        <div><p class="text-sm text-gray-400">Fraud Cases</p><p id="kpiFraudCases" class="text-2xl font-bold text-white">0</p></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50 transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-slate-400">Fraud Cases</p>
+                                <p id="kpiFraudCases" class="text-3xl font-bold text-white mt-1">0</p>
+                            </div>
+                            <div class="bg-red-500/10 p-3 rounded-full"><i data-lucide="shield-alert" class="h-6 w-6 text-red-400"></i></div>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4">
-                        <div class="bg-yellow-900/50 p-3 rounded-full"><svg class="h-6 w-6 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                        <div><p class="text-sm text-gray-400">Success Rate</p><p id="kpiSuccessRate" class="text-2xl font-bold text-white">0%</p></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50 transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-slate-400">Success Rate</p>
+                                <p id="kpiSuccessRate" class="text-3xl font-bold text-white mt-1">0%</p>
+                            </div>
+                            <div class="bg-yellow-500/10 p-3 rounded-full"><i data-lucide="check-circle" class="h-6 w-6 text-yellow-400"></i></div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg"><h3 class="text-lg font-semibold text-white mb-4">Transaction Amount</h3><div class="h-64 md:h-72"><canvas id="amountChart"></canvas></div></div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50"><h3 class="text-lg font-semibold text-white mb-4">Transaction Amount</h3><div class="h-80"><canvas id="amountChart"></canvas></div></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50">
                         <div class="flex justify-between items-center mb-4">
-                           <h3 id="statusChartTitle" class="text-lg font-semibold text-white">Transaction Status</h3>
-                           <button id="statusToggleBtn" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-full transition duration-300">
-                               Toggle View
-                           </button>
+                            <h3 id="statusChartTitle" class="text-lg font-semibold text-white">Transaction Status</h3>
+                            <button id="statusToggleBtn" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                                Toggle View
+                            </button>
                         </div>
-                        <div class="h-64 md:h-72 flex justify-center items-center"><canvas id="statusChart"></canvas></div>
+                        <div class="h-80"><canvas id="statusChart"></canvas></div>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg"><h3 class="text-lg font-semibold text-white mb-4">Fraud Check</h3><div class="h-64 md:h-72 flex justify-center items-center"><canvas id="fraudChart"></canvas></div></div>
-                    <div class="bg-gray-800 p-6 rounded-xl shadow-lg"><h3 class="text-lg font-semibold text-white mb-4">Transaction Count</h3><div class="h-64 md:h-72"><canvas id="periodChart"></canvas></div></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50"><h3 class="text-lg font-semibold text-white mb-4">Fraud Check</h3><div class="h-80 flex justify-center items-center"><canvas id="fraudChart"></canvas></div></div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-700/50"><h3 class="text-lg font-semibold text-white mb-4">Transaction Count</h3><div class="h-80"><canvas id="periodChart"></canvas></div></div>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
+        lucide.createIcons(); // Initialize Lucide icons
+
         (function() {
             // --- DATA INJECTION (from Django) ---
             const originalReport = {{ report|safe }} || [];
@@ -175,20 +153,23 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
             const originalPeriod = {{ period|safe }} || [];
 
             let amountChart, statusChart, fraudChart, periodChart;
-            let isStatusChartPercentage = true; // State for status chart view
+            let isStatusChartPercentage = true; 
 
             // --- GLOBAL CHART CONFIG FOR DARK MODE ---
             Chart.defaults.font.family = "'Inter', sans-serif";
             Chart.defaults.color = '#9ca3af';
-            Chart.defaults.borderColor = '#4b5563';
+            Chart.defaults.borderColor = '#334155';
             Chart.defaults.plugins.legend.position = 'bottom';
-            Chart.defaults.plugins.legend.labels.color = '#d1d5db';
-            Chart.defaults.plugins.tooltip.backgroundColor = '#111827';
+            Chart.defaults.plugins.legend.labels.color = '#cbd5e1';
+            Chart.defaults.plugins.legend.labels.usePointStyle = true;
+            Chart.defaults.plugins.legend.labels.pointStyle = 'rectRounded';
+            Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
             Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
-            Chart.defaults.plugins.tooltip.bodyColor = '#d1d5db';
-            Chart.defaults.plugins.tooltip.padding = 10;
-            Chart.defaults.plugins.tooltip.cornerRadius = 6;
-            
+            Chart.defaults.plugins.tooltip.bodyColor = '#cbd5e1';
+            Chart.defaults.plugins.tooltip.padding = 12;
+            Chart.defaults.plugins.tooltip.cornerRadius = 8;
+            Chart.defaults.plugins.tooltip.displayColors = false;
+
             const typeFilter = document.getElementById('typeFilter');
             const monthFilter = document.getElementById('monthFilter');
             const yearFilter = document.getElementById('yearFilter');
@@ -204,7 +185,6 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                 yearFilter.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
             }
             
-            // --- UPDATED FUNCTION ---
             function updateDashboard() {
                 const selectedType = typeFilter.value;
                 const selectedMonth = monthFilter.value;
@@ -213,13 +193,12 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                 let filteredReport = originalReport;
                 let filteredStatus = originalStatus;
                 let filteredPeriod = originalPeriod;
-                let filteredFraud = originalFraud; // Changed to let
+                let filteredFraud = originalFraud;
 
                 if (selectedType !== 'All') {
                     filteredReport = filteredReport.filter(r => r.Transaction_Type === selectedType);
                     filteredStatus = filteredStatus.filter(s => s.Transaction_Type === selectedType);
                     filteredPeriod = filteredPeriod.filter(p => p.Transaction_Type === selectedType);
-                    // ADDED: Filter fraud data by type
                     filteredFraud = filteredFraud.filter(f => f.Transaction_Type === selectedType);
                 }
 
@@ -227,7 +206,6 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                     filteredReport = filteredReport.filter(r => r.Month == selectedMonth);
                     filteredStatus = filteredStatus.filter(s => s.Month == selectedMonth);
                     filteredPeriod = filteredPeriod.filter(p => p.Month == selectedMonth);
-                    // ADDED: Filter fraud data by month
                     filteredFraud = filteredFraud.filter(f => f.Month == selectedMonth);
                 }
 
@@ -235,7 +213,6 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                     filteredReport = filteredReport.filter(r => r.Year == selectedYear);
                     filteredStatus = filteredStatus.filter(s => s.Year == selectedYear);
                     filteredPeriod = filteredPeriod.filter(p => p.Year == selectedYear);
-                    // ADDED: Filter fraud data by year
                     filteredFraud = filteredFraud.filter(f => f.Year == selectedYear);
                 }
 
@@ -248,30 +225,19 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
 
             function calculateKPIs(reportData, statusData, fraudData, periodData) {
                 try {
-                    // 1. Calculate total amount
                     const totalAmount = reportData.reduce((sum, r) => sum + (parseFloat(r.Transaction_Amount) || 0), 0);
                     document.getElementById('kpiTotalAmount').textContent = `$${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                     
-                    // 2. Calculate total transactions
                     const transactionCount = periodData.length;
                     document.getElementById('kpiTotalTransactions').textContent = transactionCount.toLocaleString('en-US');
                     
-                    // 3. Calculate fraud cases from the (now filtered) fraudData
-                    const fraudCases = fraudData.filter(f => {
-                        const flag = String(f.Fraud_Flag).toLowerCase().trim();
-                        return ['1', 'true', 'yes'].includes(flag);
-                    }).length;
+                    const fraudCases = fraudData.filter(f => ['1', 'true', 'yes'].includes(String(f.Fraud_Flag).toLowerCase().trim())).length;
                     document.getElementById('kpiFraudCases').textContent = fraudCases;
                     
-                    // 4. Calculate success rate based on total transactions vs fraud cases
-                    const successRate = transactionCount > 0 
-                        ? ((transactionCount - fraudCases) / transactionCount) * 100 
-                        : 0;
+                    const successRate = transactionCount > 0 ? ((transactionCount - fraudCases) / transactionCount) * 100 : 0;
                     document.getElementById('kpiSuccessRate').textContent = `${successRate.toFixed(1)}%`;
-                    
                 } catch (error) {
                     console.error("Error in calculateKPIs:", error);
-                    // Set default values if there's an error
                     document.getElementById('kpiTotalAmount').textContent = "$0";
                     document.getElementById('kpiTotalTransactions').textContent = "0";
                     document.getElementById('kpiFraudCases').textContent = "0";
@@ -285,22 +251,54 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                 return new Chart(ctx, config);
             }
 
-            // --- CHART 1: Transaction Amount (Bar Chart) ---
             function createAmountChart(data) {
                 const labels = data.map(r => `${r.Transaction_Type} (${r.Month}/${r.Year})`);
                 const values = data.map(r => parseFloat(r.Transaction_Amount) || 0);
+
+                const ctx = document.getElementById('amountChart').getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.6)');
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+
                 amountChart = createChart(amountChart, 'amountChart', {
                     type: 'bar',
-                    data: { labels: labels, datasets: [{ label: 'Transaction Amount', data: values, backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1, borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#4b5563' } }, x: { grid: { color: '#374151' } } } }
+                    data: { 
+                        labels: labels, 
+                        datasets: [{ 
+                            label: 'Transaction Amount', 
+                            data: values, 
+                            backgroundColor: gradient, 
+                            borderColor: 'rgba(59, 130, 246, 1)', 
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            hoverBackgroundColor: 'rgba(59, 130, 246, 0.8)'
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { 
+                            y: { beginAtZero: true, grid: { color: '#334155' } }, 
+                            x: { grid: { display: false } } 
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` Amount: $${context.parsed.y.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
             }
 
-            // --- CHART 2: Transaction Status (Toggleable View) ---
+            // --- FUNGSI CHART STATUS TRANSAKSI YANG DIMODIFIKASI ---
             function createStatusChart(data) {
                 const types = [...new Set(data.map(item => item.Transaction_Type))];
                 const statuses = [...new Set(data.map(item => item.Transaction_Status))];
-                const statusColors = { 'completed': 'rgba(59, 130, 246, 0.7)', 'failed': 'rgba(239, 68, 68, 0.7)', 'pending': 'rgba(245, 158, 11, 0.7)' };
+                const statusColors = { 'completed': 'rgba(34, 197, 94, 0.8)', 'failed': 'rgba(239, 68, 68, 0.8)', 'pending': 'rgba(245, 158, 11, 0.8)' };
 
                 const statusChartTitle = document.getElementById('statusChartTitle');
                 const statusToggleBtn = document.getElementById('statusToggleBtn');
@@ -323,21 +321,22 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                             const total = totalsPerType[type];
                             if (total === 0) return 0;
                             const entry = data.find(d => d.Transaction_Type === type && d.Transaction_Status === status);
-                            const count = entry ? parseInt(entry.Count) : 0;
-                            return (count / total) * 100;
+                            return ((entry ? parseInt(entry.Count) : 0) / total) * 100;
                         }),
                         backgroundColor: statusColors[String(status).toLowerCase()] || '#6b7280',
+                        borderRadius: 4,
                     }));
                     
                     chartOptions = {
                         scales: {
-                            x: { grid: { color: '#374151' } },
-                            y: { grid: { color: '#4b5563' }, ticks: { callback: value => value + '%' } }
+                            // Menghilangkan 'stacked: true' agar menjadi grouped bar chart
+                            x: { grid: { display: false } },
+                            y: { grid: { color: '#334155' }, ticks: { callback: value => value + '%' } }
                         },
                         plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label || ''}: ${context.parsed.y.toFixed(1)}%` } } }
                     };
                 } else {
-                    statusChartTitle.textContent = 'Transaction Status (by Count)';
+                    statusChartTitle.textContent = 'Transaction Status (Count)';
                     statusToggleBtn.textContent = 'Show by %';
 
                     datasets = statuses.map(status => ({
@@ -347,12 +346,14 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                             return entry ? parseInt(entry.Count) : 0;
                         }),
                         backgroundColor: statusColors[String(status).toLowerCase()] || '#6b7280',
+                        borderRadius: 4,
                     }));
                     
                     chartOptions = {
                         scales: {
-                            x: { grid: { color: '#374151' } },
-                            y: { grid: { color: '#4b5563' } }
+                            // Menghilangkan 'stacked: true' agar menjadi grouped bar chart
+                            x: { grid: { display: false } },
+                            y: { grid: { color: '#334155' } }
                         }
                     };
                 }
@@ -360,27 +361,54 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                 statusChart = createChart(statusChart, 'statusChart', {
                     type: 'bar',
                     data: { labels: types, datasets: datasets },
-                    options: { ...chartOptions, responsive: true, maintainAspectRatio: false }
+                    options: { ...chartOptions, responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false } }
                 });
             }
 
-            // --- CHART 3: Fraud Check (Doughnut Chart) ---
             function createFraudChart(data) {
                 const fraudCount = data.filter(f => ['1', 'true', 'yes'].includes(String(f.Fraud_Flag).toLowerCase().trim())).length;
                 const notFraudCount = data.length - fraudCount;
 
                 fraudChart = createChart(fraudChart, 'fraudChart', {
                     type: 'doughnut',
-                    data: { labels: ['Not Fraud', 'Fraud'], datasets: [{ data: [notFraudCount, fraudCount], backgroundColor: ['#22c55e', '#ef4444'], borderColor: '#1f2937', borderWidth: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+                    data: { 
+                        labels: ['Not Fraud', 'Fraud'], 
+                        datasets: [{ 
+                            data: [notFraudCount, fraudCount], 
+                            backgroundColor: ['#22c55e', '#ef4444'], 
+                            borderColor: '#1e293b',
+                            borderWidth: 6,
+                            hoverOffset: 10
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '75%',
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        return ` ${context.label}: ${context.parsed} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
             }
-
-            // --- CHART 4: Transaction Count (Bar Chart) ---
+            
             function createPeriodChart(data) {
                 const periodTypeCounts = {};
                 data.forEach(p => { periodTypeCounts[p.Transaction_Type] = (periodTypeCounts[p.Transaction_Type] || 0) + 1; });
                 
+                const ctx = document.getElementById('periodChart').getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+                gradient.addColorStop(0, 'rgba(249, 115, 22, 0.6)');
+                gradient.addColorStop(1, 'rgba(249, 115, 22, 0.1)');
+
                 periodChart = createChart(periodChart, 'periodChart', {
                     type: 'bar',
                     data: { 
@@ -388,16 +416,28 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                         datasets: [{ 
                             label: 'Transaction Count', 
                             data: Object.values(periodTypeCounts), 
-                            backgroundColor: 'rgba(249, 115, 22, 0.5)', 
+                            backgroundColor: gradient,
                             borderColor: 'rgba(249, 115, 22, 1)', 
-                            borderWidth: 1,
-                            borderRadius: 4
+                            borderWidth: 2,
+                            borderRadius: 6
                         }] 
                     },
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false, 
-                        scales: { y: { beginAtZero: true, grid: { color: '#4b5563' } }, x: { grid: { color: '#374151' } } } 
+                        scales: { 
+                            y: { beginAtZero: true, grid: { color: '#334155' } }, 
+                            x: { grid: { display: false } } 
+                        },
+                         plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` Count: ${context.parsed.y.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        }
                     }
                 });
             }
@@ -407,8 +447,7 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
                 try {
                     populateFilters();
                     
-                    const statusToggleBtn = document.getElementById('statusToggleBtn');
-                    statusToggleBtn.addEventListener('click', () => {
+                    document.getElementById('statusToggleBtn').addEventListener('click', () => {
                         isStatusChartPercentage = !isStatusChartPercentage;
                         updateDashboard();
                     });
@@ -424,4 +463,3 @@ Berikut adalah kode HTML lengkap dengan fungsi `updateDashboard` yang sudah dipe
     </script>
 </body>
 </html>
-```
