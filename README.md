@@ -1,7 +1,6 @@
 # Financial Analytics Dashboard
 
-[![Dashboard Screenshot](./screenshot.png)](https://github.com/chardinal/financial-dashboard-business-Intelligence/blob/82c23091e49f067ac0e4c82646eeb0ebcaad9220/dashboard.png)
-
+![Image Alt](https://github.com/chardinal/financial-dashboard-business-Intelligence/blob/82c23091e49f067ac0e4c82646eeb0ebcaad9220/dashboard.png)
 A comprehensive financial monitoring system featuring an ETL pipeline and interactive dashboard for transaction analysis.
 
 ## ✨ Features
